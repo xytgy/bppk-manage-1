@@ -1,0 +1,223 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "图书管理系统 API",
+    "description": "图书管理系统的后端接口文档，可直接导入 Apifox 使用",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "本地开发服务器"
+    }
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["认证模块"],
+        "summary": "用户登录",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "登录成功" }
+        }
+      }
+    },
+    "/api/auth/info": {
+      "get": {
+        "tags": ["认证模块"],
+        "summary": "获取当前用户信息",
+        "responses": {
+          "200": { "description": "获取成功" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["认证模块"],
+        "summary": "退出登录",
+        "responses": {
+          "200": { "description": "退出成功" }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": ["认证模块"],
+        "summary": "重置密码",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": { "type": "string" },
+                  "newPassword": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "重置成功" }
+        }
+      }
+    },
+    "/api/books": {
+      "get": {
+        "tags": ["图书模块"],
+        "summary": "获取图书列表",
+        "parameters": [
+          { "name": "title", "in": "query", "schema": { "type": "string" } },
+          { "name": "author", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "成功" }
+        }
+      },
+      "post": {
+        "tags": ["图书模块"],
+        "summary": "新增图书",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Book" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "成功" }
+        }
+      }
+    },
+    "/api/books/{id}": {
+      "get": {
+        "tags": ["图书模块"],
+        "summary": "获取图书详情",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      },
+      "put": {
+        "tags": ["图书模块"],
+        "summary": "更新图书",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Book" } }
+          }
+        },
+        "responses": { "200": { "description": "成功" } }
+      },
+      "delete": {
+        "tags": ["图书模块"],
+        "summary": "删除图书",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": ["用户模块"],
+        "summary": "获取用户列表",
+        "responses": { "200": { "description": "成功" } }
+      },
+      "post": {
+        "tags": ["用户模块"],
+        "summary": "新增用户",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/User" } }
+          }
+        },
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "tags": ["用户模块"],
+        "summary": "更新用户",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      },
+      "delete": {
+        "tags": ["用户模块"],
+        "summary": "删除用户",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "tags": ["分类模块"],
+        "summary": "获取分类列表",
+        "responses": { "200": { "description": "成功" } }
+      },
+      "post": {
+        "tags": ["分类模块"],
+        "summary": "新增分类",
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/borrows": {
+      "get": {
+        "tags": ["借阅模块"],
+        "summary": "获取借阅列表",
+        "responses": { "200": { "description": "成功" } }
+      },
+      "post": {
+        "tags": ["借阅模块"],
+        "summary": "借阅图书",
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/borrows/{id}/return": {
+      "post": {
+        "tags": ["借阅模块"],
+        "summary": "归还图书",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "author": { "type": "string" },
+          "isbn": { "type": "string" },
+          "categoryId": { "type": "integer" },
+          "publisher": { "type": "string" },
+          "price": { "type": "number" },
+          "stock": { "type": "integer" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "username": { "type": "string" },
+          "nickname": { "type": "string" },
+          "role": { "type": "string" },
+          "status": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

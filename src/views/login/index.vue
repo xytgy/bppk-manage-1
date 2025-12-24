@@ -1,13 +1,24 @@
 <template>
   <div class="login-container">
+    <!-- 动态背景装饰 -->
+    <div class="bg-decoration">
+      <div class="circle circle-1"></div>
+      <div class="circle circle-2"></div>
+      <div class="circle circle-3"></div>
+    </div>
+
     <div class="login-box">
       <div class="login-header">
-        <img src="../../assets/logo.png" alt="logo" class="logo" />
+        <div class="logo-container">
+          <img src="../../assets/logo.png" alt="logo" class="logo" />
+        </div>
         <h2 class="title">图书管理系统</h2>
+        <p class="subtitle">BOOK MANAGEMENT SYSTEM</p>
       </div>
+
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large">
         <el-form-item prop="username">
-          <el-input v-model="loginForm.username" placeholder="用户名: admin">
+          <el-input v-model="loginForm.username" placeholder="用户名">
             <template #prefix>
               <el-icon><User /></el-icon>
             </template>
@@ -17,7 +28,7 @@
           <el-input
             v-model="loginForm.password"
             type="password"
-            placeholder="密码: admin123"
+            placeholder="密码"
             show-password
             @keyup.enter="handleLogin"
           >
@@ -26,22 +37,30 @@
             </template>
           </el-input>
         </el-form-item>
+        
         <div class="login-options">
           <el-checkbox v-model="rememberMe">记住我</el-checkbox>
           <el-button link type="primary" @click="router.push('/forgot-password')">忘记密码？</el-button>
         </div>
+
         <el-button
           :loading="loading"
           type="primary"
           class="login-button"
           @click="handleLogin"
         >
-          {{ loading ? '登录中...' : '登 录' }}
+          {{ loading ? '登 录 中...' : '立 即 登 录' }}
         </el-button>
       </el-form>
+
       <div class="login-footer">
-        <p>管理员: admin / admin123</p>
-        <p>学生: student / 123456</p>
+        <div class="divider">
+          <span>测试账号</span>
+        </div>
+        <div class="test-accounts">
+          <el-tag size="small" type="info">管理员: admin / admin123</el-tag>
+          <el-tag size="small" type="info">学生: student / 123456</el-tag>
+        </div>
       </div>
     </div>
   </div>
@@ -77,10 +96,6 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // 实际调用接口
-        // const res = await login(loginForm)
-        // const { token, userInfo } = res.data
-        
         // 模拟登录请求
         setTimeout(() => {
           let userInfo = null
@@ -102,8 +117,7 @@ const handleLogin = async () => {
             localStorage.setItem('token', `${userInfo.role}-token`)
             localStorage.setItem('userInfo', JSON.stringify(userInfo))
             
-            ElMessage.success('登录成功')
-            // 学生账号直接去借阅管理
+            ElMessage.success('登录成功，欢迎回来')
             if (userInfo.role === 'student') {
               router.push('/borrow')
             } else {
@@ -113,7 +127,7 @@ const handleLogin = async () => {
             ElMessage.error('用户名或密码错误')
           }
           loading.value = false
-        }, 1000)
+        }, 1200)
       } catch (error) {
         loading.value = false
       }
@@ -128,58 +142,201 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #2d3a4b;
-  background-image: linear-gradient(180deg, #2d3a4b 0%, #1a242f 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 装饰背景圆圈 */
+.bg-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: float 10s infinite alternate ease-in-out;
+}
+
+.circle-1 {
+  width: 400px;
+  height: 400px;
+  background: #a18cd1;
+  top: -100px;
+  left: -100px;
+}
+
+.circle-2 {
+  width: 300px;
+  height: 300px;
+  background: #fbc2eb;
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -2s;
+}
+
+.circle-3 {
+  width: 250px;
+  height: 250px;
+  background: #84fab0;
+  top: 40%;
+  left: 30%;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 50px) scale(1.1); }
 }
 
 .login-box {
-  width: 400px;
+  width: 420px;
   padding: 40px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
-.login-header .logo {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 15px;
+.logo-container {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.logo-container .logo {
+  width: 50px;
+  height: 50px;
 }
 
 .login-header .title {
-  color: #333;
-  font-size: 24px;
-  font-weight: bold;
+  color: #2c3e50;
+  font-size: 28px;
+  font-weight: 700;
   margin: 0;
+  letter-spacing: 1px;
+}
+
+.login-header .subtitle {
+  color: #7f8c8d;
+  font-size: 12px;
+  margin-top: 8px;
+  letter-spacing: 4px;
 }
 
 .login-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .login-button {
   width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  letter-spacing: 2px;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);
+}
+
+.login-button:active {
+  transform: translateY(0);
 }
 
 .login-footer {
-  margin-top: 20px;
-  text-align: center;
-  color: #909399;
-  font-size: 14px;
+  margin-top: 35px;
 }
 
+.divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.divider span {
+  padding: 0 15px;
+  color: #95a5a6;
+  font-size: 13px;
+}
+
+.test-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.test-accounts .el-tag {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  color: #7f8c8d;
+}
+
+/* 覆盖 Element Plus 样式 */
 :deep(.el-input__wrapper) {
-  background-color: #f5f7fa;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 5px 15px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  background-color: #fff;
+  border-color: #667eea;
+}
+
+:deep(.el-input__prefix-inner) {
+  font-size: 18px;
+  color: #764ba2;
+}
+
+:deep(.el-checkbox__label) {
+  color: #7f8c8d;
 }
 </style>
+
