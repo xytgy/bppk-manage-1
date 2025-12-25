@@ -139,9 +139,17 @@ const getList = async () => {
   loading.value = true
   try {
     const res: any = await getBookList(queryParams)
-    bookList.value = res.data
+    // 兼容处理：如果 res.data 是数组直接赋值，如果是对象则尝试取 list 字段，否则给空数组
+    if (Array.isArray(res.data)) {
+      bookList.value = res.data
+    } else if (res.data && Array.isArray(res.data.list)) {
+      bookList.value = res.data.list
+    } else {
+      bookList.value = []
+    }
   } catch (error) {
     console.error('获取图书列表失败:', error)
+    bookList.value = []
   } finally {
     loading.value = false
   }
@@ -178,9 +186,10 @@ const rules = reactive<FormRules>({
 
 // 过滤后的图书列表
 const filteredBooks = computed(() => {
+  if (!Array.isArray(bookList.value)) return []
   return bookList.value.filter(book => {
-    const matchTitle = book.title.toLowerCase().includes(queryParams.title.toLowerCase())
-    const matchAuthor = book.author.toLowerCase().includes(queryParams.author.toLowerCase())
+    const matchTitle = (book.title || '').toLowerCase().includes(queryParams.title.toLowerCase())
+    const matchAuthor = (book.author || '').toLowerCase().includes(queryParams.author.toLowerCase())
     // 这里简单处理分类过滤，实际应该根据 categoryId
     const matchCategory = queryParams.category === '' || book.categoryName === queryParams.category
     return matchTitle && matchAuthor && matchCategory

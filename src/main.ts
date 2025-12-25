@@ -1,3 +1,13 @@
+const originalError = console.error;
+console.error = function (...args) {
+  if (args && args[0] && args[0].includes('ResizeObserver loop completed with undelivered notifications')) {
+    return;
+  }
+  originalError.apply(console, args);
+};
+
+
+
 import { createApp } from 'vue'
 import App from './App.vue'
 import ElementPlus from 'element-plus'

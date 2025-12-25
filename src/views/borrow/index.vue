@@ -121,6 +121,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getBorrowList, borrowBook, returnBook } from '@/api/borrow'
 import type { BorrowRecord } from '@/api/borrow'
+import { getUserList } from '@/api/user'
+import { getBookList } from '@/api/book'
 
 // 状态映射
 const statusMap: Record<number, { label: string, type: 'info' | 'success' | 'danger' | 'warning' }> = {
@@ -135,9 +137,6 @@ const queryParams = reactive({
   bookTitle: '',
   status: undefined as number | undefined
 })
-
-import { getUserList } from '@/api/user'
-import { getBookList } from '@/api/book'
 
 // 借阅记录数据
 const borrowRecords = ref<BorrowRecord[]>([])
@@ -155,7 +154,13 @@ const getOptions = async () => {
     const userRes: any = await getUserList({ pageSize: 100 })
     userOptions.value = userRes.data
     const bookRes: any = await getBookList({ pageSize: 100 })
-    bookOptions.value = bookRes.data
+    if (bookRes.data && Array.isArray(bookRes.data.list)) {
+      bookOptions.value = bookRes.data.list
+    } else if (Array.isArray(bookRes.data)) {
+      bookOptions.value = bookRes.data
+    } else {
+      bookOptions.value = []
+    }
   } catch (error) {
     console.error('获取选项失败:', error)
   }
@@ -165,10 +170,14 @@ const getOptions = async () => {
 const getList = async () => {
   loading.value = true
   try {
-    const res: any = await getBorrowList(queryParams)
-    borrowRecords.value = res.data
+    const filteredParams = Object.fromEntries(
+      Object.entries(queryParams).filter(([, value]) => value !== '' && value !== undefined)
+    );
+    const res: any = await getBorrowList(filteredParams)
+    borrowRecords.value = Array.isArray(res.data) ? res.data : []
   } catch (error) {
     console.error('获取借阅记录失败:', error)
+    borrowRecords.value = []
   } finally {
     loading.value = false
   }
@@ -195,9 +204,15 @@ const rules = reactive<FormRules>({
 
 // 过滤后的记录
 const filteredRecords = computed(() => {
+  if (!Array.isArray(borrowRecords.value)) return []
   return borrowRecords.value.filter(record => {
-    const matchUser = record.username.toLowerCase().includes(queryParams.username.toLowerCase())
-    const matchBook = record.bookTitle.toLowerCase().includes(queryParams.bookTitle.toLowerCase())
+    const username = record.username || ''
+    const bookTitle = record.bookTitle || ''
+    const queryUsername = queryParams.username || ''
+    const queryBookTitle = queryParams.bookTitle || ''
+
+    const matchUser = username.toLowerCase().includes(queryUsername.toLowerCase())
+    const matchBook = bookTitle.toLowerCase().includes(queryBookTitle.toLowerCase())
     const matchStatus = queryParams.status === undefined || record.status === queryParams.status
     return matchUser && matchBook && matchStatus
   })
