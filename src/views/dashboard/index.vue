@@ -57,7 +57,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { User, Notebook, Document, Warning } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { getStatistics } from '@/api/borrow'
+import { getStatistics, getRecentBorrows } from '@/api/borrow'
 
 // 统计数据
 const statistics = ref([
@@ -85,6 +85,10 @@ const fetchStats = async () => {
     statistics.value[1].value = totalUsers
     statistics.value[2].value = currentBorrows
     statistics.value[3].value = overdueBorrows
+    
+    // 获取最近借阅
+    const recentRes: any = await getRecentBorrows()
+    recentBorrows.value = recentRes.data
   } catch (error) {
     console.error('获取统计数据失败:', error)
   }

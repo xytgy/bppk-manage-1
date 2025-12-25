@@ -76,6 +76,53 @@
         }
       }
     },
+    "/api/auth/profile": {
+      "put": {
+        "tags": ["认证模块"],
+        "summary": "更新个人信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nickname": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "email": { "type": "string" },
+                  "intro": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "更新成功" }
+        }
+      }
+    },
+    "/api/auth/verify-code": {
+      "post": {
+        "tags": ["认证模块"],
+        "summary": "发送验证码",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "发送成功" }
+        }
+      }
+    },
     "/api/books": {
       "get": {
         "tags": ["图书模块"],
@@ -188,6 +235,14 @@
       "post": {
         "tags": ["借阅模块"],
         "summary": "归还图书",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "成功" } }
+      }
+    },
+    "/api/borrows/{id}": {
+      "delete": {
+        "tags": ["借阅模块"],
+        "summary": "删除借阅记录",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "成功" } }
       }

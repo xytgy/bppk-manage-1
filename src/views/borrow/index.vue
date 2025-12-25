@@ -119,7 +119,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { Search, Refresh, DocumentAdd } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getBorrowList, borrowBook, returnBook } from '@/api/borrow'
+import { getBorrowList, borrowBook, returnBook, deleteBorrow } from '@/api/borrow'
 import type { BorrowRecord } from '@/api/borrow'
 import { getUserList } from '@/api/user'
 import { getBookList } from '@/api/book'
@@ -251,13 +251,19 @@ const handleReturn = (row: BorrowRecord) => {
 }
 
 const handleDelete = (row: BorrowRecord) => {
+  if (!row.id) return
   ElMessageBox.confirm('确定要删除这条借阅记录吗？', '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    borrowRecords.value = borrowRecords.value.filter(r => r.id !== row.id)
-    ElMessage.success('删除成功')
+  }).then(async () => {
+    try {
+      await deleteBorrow(row.id!)
+      ElMessage.success('删除成功')
+      getList()
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
   })
 }
 

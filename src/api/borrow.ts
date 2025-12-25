@@ -45,3 +45,19 @@ export const getStatistics = () => {
     method: 'get'
   })
 }
+
+// 获取最近借阅动态
+export const getRecentBorrows = () => {
+  return request({
+    url: '/api/borrows/recent',
+    method: 'get'
+  })
+}
+
+// 删除借阅记录
+export const deleteBorrow = (id: number) => {
+  return request({
+    url: `/api/borrows/${id}`,
+    method: 'delete'
+  })
+}
