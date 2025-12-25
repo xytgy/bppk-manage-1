@@ -138,41 +138,11 @@ const bookFormRef = ref<FormInstance>()
 const getList = async () => {
   loading.value = true
   try {
-    // 实际项目中调用接口
-    // const res = await getBookList(queryParams)
-    // bookList.value = res.data
-    
-    // 模拟数据展示
-    setTimeout(() => {
-      bookList.value = [
-        {
-          id: 1,
-          isbn: '978-7-121-36212-3',
-          title: 'Vue.js 设计与实现',
-          author: '霍春阳',
-          categoryId: 1,
-          categoryName: '计算机',
-          publisher: '电子工业出版社',
-          publishDate: '2022-01-01',
-          price: 119.80,
-          stock: 50
-        },
-        {
-          id: 2,
-          isbn: '978-7-111-64555-9',
-          title: '深入理解计算机系统',
-          author: 'Randal E. Bryant',
-          categoryId: 1,
-          categoryName: '计算机',
-          publisher: '机械工业出版社',
-          publishDate: '2016-11-01',
-          price: 139.00,
-          stock: 30
-        }
-      ]
-      loading.value = false
-    }, 500)
+    const res: any = await getBookList(queryParams)
+    bookList.value = res.data
   } catch (error) {
+    console.error('获取图书列表失败:', error)
+  } finally {
     loading.value = false
   }
 }
@@ -249,10 +219,12 @@ const handleDelete = (row: Book) => {
     type: 'warning'
   }).then(async () => {
     try {
-      // await deleteBook(row.id)
-      bookList.value = bookList.value.filter(b => b.id !== row.id)
+      await deleteBook(row.id!)
       ElMessage.success('删除成功')
-    } catch (error) {}
+      getList()
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
   })
 }
 
@@ -278,43 +250,19 @@ const submitForm = async () => {
     if (valid) {
       try {
         if (isEdit.value) {
-          // 更新
-          // if (bookForm.id) await updateBook(bookForm.id, bookForm)
-          const categoryMap: Record<number, string> = {
-            1: '计算机',
-            2: '文学',
-            3: '历史',
-            4: '艺术',
-            5: '其他'
+          if (bookForm.id) {
+            await updateBook(bookForm.id, bookForm)
+            ElMessage.success('更新成功')
           }
-          const index = bookList.value.findIndex(b => b.id === bookForm.id)
-          if (index !== -1) {
-            bookList.value[index] = { 
-              ...bookForm,
-              categoryName: categoryMap[bookForm.categoryId] || '未知分类'
-            }
-          }
-          ElMessage.success('更新成功')
         } else {
-          // 入库（新增）
-          // await addBook(bookForm)
-          const categoryMap: Record<number, string> = {
-            1: '计算机',
-            2: '文学',
-            3: '历史',
-            4: '艺术',
-            5: '其他'
-          }
-          const newBook: Book = {
-            ...bookForm,
-            id: Date.now(),
-            categoryName: categoryMap[bookForm.categoryId] || '未知分类'
-          }
-          bookList.value.push(newBook)
+          await addBook(bookForm)
           ElMessage.success('入库成功')
         }
         dialogVisible.value = false
-      } catch (error) {}
+        getList()
+      } catch (error) {
+        console.error('提交失败:', error)
+      }
     }
   })
 }

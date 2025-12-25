@@ -136,65 +136,47 @@ const queryParams = reactive({
   status: undefined as number | undefined
 })
 
+import { getUserList } from '@/api/user'
+import { getBookList } from '@/api/book'
+
 // 借阅记录数据
 const borrowRecords = ref<BorrowRecord[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const borrowFormRef = ref<FormInstance>()
 
-// 模拟选项数据
-const userOptions = [
-  { id: 1, username: 'admin', nickname: '超级管理员' },
-  { id: 2, username: 'user1', nickname: '张三' }
-]
-const bookOptions = [
-  { id: 1, title: 'Vue.js 设计与实现' },
-  { id: 2, title: '深入理解计算机系统' }
-]
+// 下拉选项数据
+const userOptions = ref<any[]>([])
+const bookOptions = ref<any[]>([])
+
+// 获取选项数据
+const getOptions = async () => {
+  try {
+    const userRes: any = await getUserList({ pageSize: 100 })
+    userOptions.value = userRes.data
+    const bookRes: any = await getBookList({ pageSize: 100 })
+    bookOptions.value = bookRes.data
+  } catch (error) {
+    console.error('获取选项失败:', error)
+  }
+}
 
 // 获取列表数据
 const getList = async () => {
   loading.value = true
   try {
-    // 实际项目中调用接口
-    // const res = await getBorrowList(queryParams)
-    // borrowRecords.value = res.data
-    
-    // 模拟数据
-    setTimeout(() => {
-      borrowRecords.value = [
-        {
-          id: 1,
-          userId: 2,
-          username: 'user1',
-          bookId: 1,
-          bookTitle: 'Vue.js 设计与实现',
-          borrowDate: '2023-12-01',
-          dueDate: '2023-12-15',
-          returnDate: '2023-12-10',
-          status: 1
-        },
-        {
-          id: 2,
-          userId: 1,
-          username: 'admin',
-          bookId: 2,
-          bookTitle: '深入理解计算机系统',
-          borrowDate: '2023-12-20',
-          dueDate: '2024-01-04',
-          returnDate: undefined,
-          status: 0
-        }
-      ]
-      loading.value = false
-    }, 500)
+    const res: any = await getBorrowList(queryParams)
+    borrowRecords.value = res.data
   } catch (error) {
+    console.error('获取借阅记录失败:', error)
+  } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
   getList()
+  getOptions()
 })
 
 // 表单数据
@@ -244,14 +226,12 @@ const handleReturn = (row: BorrowRecord) => {
     type: 'info'
   }).then(async () => {
     try {
-      // await returnBook(row.id)
-      const record = borrowRecords.value.find(r => r.id === row.id)
-      if (record) {
-        record.status = 1
-        record.returnDate = new Date().toISOString().split('T')[0]
-        ElMessage.success('归还成功')
-      }
-    } catch (error) {}
+      await returnBook(row.id!)
+      ElMessage.success('归还成功')
+      getList()
+    } catch (error) {
+      console.error('归还失败:', error)
+    }
   })
 }
 
@@ -280,32 +260,18 @@ const submitForm = async () => {
   await borrowFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // if (borrowForm.bookId && borrowForm.userId) {
-        //   await borrowBook({ bookId: borrowForm.bookId, userId: borrowForm.userId })
-        // }
-        
-        const borrowDate = new Date()
-        const dueDate = new Date()
-        dueDate.setDate(borrowDate.getDate() + borrowForm.days)
-
-        const selectedUser = userOptions.find(u => u.id === borrowForm.userId)
-        const selectedBook = bookOptions.find(b => b.id === borrowForm.bookId)
-
-        const newRecord: BorrowRecord = {
-          id: Date.now(),
-          userId: borrowForm.userId || 0,
-          username: selectedUser?.nickname || '未知用户',
-          bookId: borrowForm.bookId || 0,
-          bookTitle: selectedBook?.title || '未知图书',
-          borrowDate: borrowDate.toISOString().split('T')[0],
-          dueDate: dueDate.toISOString().split('T')[0],
-          returnDate: undefined,
-          status: 0
+        if (borrowForm.userId && borrowForm.bookId) {
+          await borrowBook({
+            userId: borrowForm.userId,
+            bookId: borrowForm.bookId
+          })
+          ElMessage.success('借阅成功')
+          dialogVisible.value = false
+          getList()
         }
-        borrowRecords.value.unshift(newRecord)
-        ElMessage.success('借阅成功')
-        dialogVisible.value = false
-      } catch (error) {}
+      } catch (error) {
+        console.error('借阅失败:', error)
+      }
     }
   })
 }

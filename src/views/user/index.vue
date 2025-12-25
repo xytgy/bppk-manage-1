@@ -124,33 +124,11 @@ const userFormRef = ref<FormInstance>()
 const getList = async () => {
   loading.value = true
   try {
-    // 实际项目中调用接口
-    // const res = await getUserList(queryParams)
-    // userList.value = res.data
-    
-    // 模拟数据展示
-    setTimeout(() => {
-      userList.value = [
-        {
-          id: 1,
-          username: 'admin',
-          nickname: '超级管理员',
-          role: 'admin',
-          status: 1,
-          createTime: '2023-01-01 12:00:00'
-        },
-        {
-          id: 2,
-          username: 'user1',
-          nickname: '张三',
-          role: 'user',
-          status: 1,
-          createTime: '2023-05-10 15:30:00'
-        }
-      ]
-      loading.value = false
-    }, 500)
+    const res: any = await getUserList(queryParams)
+    userList.value = res.data
   } catch (error) {
+    console.error('获取用户列表失败:', error)
+  } finally {
     loading.value = false
   }
 }
@@ -219,23 +197,25 @@ const handleEdit = (row: User) => {
 
 const handleDelete = (row: User) => {
   if (!row.id) return
-  ElMessageBox.confirm(`确定要删除用户 "${row.username}" 吗？`, '提示', {
+  ElMessageBox.confirm(`确定要删除用户 "${row.nickname}" 吗？`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
     try {
-      // await deleteUser(row.id)
-      userList.value = userList.value.filter(u => u.id !== row.id)
+      await deleteUser(row.id!)
       ElMessage.success('删除成功')
-    } catch (error) {}
+      getList()
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
   })
 }
 
 const handleStatusChange = async (row: User) => {
   if (!row.id) return
   try {
-    // await updateUserStatus(row.id, row.status)
+    await updateUserStatus(row.id, row.status)
     ElMessage.success(`${row.username} 的状态已更新`)
   } catch (error) {
     row.status = row.status === 1 ? 0 : 1 // 恢复状态
@@ -260,34 +240,19 @@ const submitForm = async () => {
     if (valid) {
       try {
         if (isEdit.value) {
-          if (!userForm.id) return
-          // await updateUser(userForm.id, userForm)
-          const index = userList.value.findIndex(u => u.id === userForm.id)
-          if (index !== -1) {
-            userList.value[index] = {
-              ...userList.value[index],
-              username: userForm.username,
-              nickname: userForm.nickname,
-              role: userForm.role,
-              status: userForm.status
-            }
+          if (userForm.id) {
+            await updateUser(userForm.id, userForm as any)
+            ElMessage.success('更新成功')
           }
-          ElMessage.success('更新成功')
         } else {
-          // await addUser(userForm)
-          const newUser: User = {
-            id: Date.now(),
-            username: userForm.username,
-            nickname: userForm.nickname,
-            role: userForm.role,
-            status: userForm.status,
-            createTime: new Date().toLocaleString()
-          }
-          userList.value.push(newUser)
+          await addUser(userForm as any)
           ElMessage.success('新增成功')
         }
         dialogVisible.value = false
-      } catch (error) {}
+        getList()
+      } catch (error) {
+        console.error('提交失败:', error)
+      }
     }
   })
 }

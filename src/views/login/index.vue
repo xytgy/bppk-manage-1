@@ -96,39 +96,22 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // 模拟登录请求
-        setTimeout(() => {
-          let userInfo = null
-          if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
-            userInfo = {
-              username: 'admin',
-              nickname: '超级管理员',
-              role: 'admin'
-            }
-          } else if (loginForm.username === 'student' && loginForm.password === '123456') {
-            userInfo = {
-              username: 'student',
-              nickname: '张同学',
-              role: 'student'
-            }
-          }
-
-          if (userInfo) {
-            localStorage.setItem('token', `${userInfo.role}-token`)
-            localStorage.setItem('userInfo', JSON.stringify(userInfo))
-            
-            ElMessage.success('登录成功，欢迎回来')
-            if (userInfo.role === 'student') {
-              router.push('/borrow')
-            } else {
-              router.push('/')
-            }
+        const res: any = await login(loginForm)
+        if (res.code === 200) {
+          const { token, userInfo } = res.data
+          localStorage.setItem('token', token)
+          localStorage.setItem('userInfo', JSON.stringify(userInfo))
+          
+          ElMessage.success('登录成功，欢迎回来')
+          if (userInfo.role === 'student') {
+            router.push('/borrow')
           } else {
-            ElMessage.error('用户名或密码错误')
+            router.push('/')
           }
-          loading.value = false
-        }, 1200)
+        }
       } catch (error) {
+        console.error('登录失败:', error)
+      } finally {
         loading.value = false
       }
     }

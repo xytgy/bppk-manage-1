@@ -92,8 +92,8 @@ const sendCode = async () => {
   }
   
   try {
-    // await sendVerifyCode(verifyForm.email)
-    ElMessage.success('验证码已发送至您的邮箱（模拟：1234）')
+    await sendVerifyCode(verifyForm.email)
+    ElMessage.success('验证码已发送至您的邮箱')
     timer.value = setInterval(() => {
       count.value--
       if (count.value <= 0) {
@@ -153,11 +153,7 @@ const handleNextStep = async () => {
   if (!verifyFormRef.value) return
   await verifyFormRef.value.validate((valid) => {
     if (valid) {
-      if (verifyForm.code === '1234') {
-        activeStep.value = 1
-      } else {
-        ElMessage.error('验证码错误')
-      }
+      activeStep.value = 1
     }
   })
 }
@@ -168,16 +164,15 @@ const handleReset = async () => {
     if (valid) {
       loading.value = true
       try {
-        // await resetPassword({
-        //   username: verifyForm.username,
-        //   password: resetForm.password,
-        //   code: verifyForm.code
-        // })
-        setTimeout(() => {
-          activeStep.value = 2
-          loading.value = false
-        }, 1000)
+        await resetPassword({
+          username: verifyForm.username,
+          password: resetForm.password,
+          code: verifyForm.code
+        })
+        activeStep.value = 2
       } catch (error) {
+        console.error('重置密码失败:', error)
+      } finally {
         loading.value = false
       }
     }

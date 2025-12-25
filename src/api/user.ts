@@ -13,6 +13,8 @@ export interface User {
 export interface UserQuery {
   username?: string
   role?: string
+  pageNum?: number
+  pageSize?: number
 }
 
 // 获取用户列表

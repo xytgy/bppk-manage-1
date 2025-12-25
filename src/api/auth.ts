@@ -34,6 +34,15 @@ export const resetPassword = (data: any) => {
   })
 }
 
+// 更新个人信息
+export const updateProfile = (data: any) => {
+  return request({
+    url: '/api/auth/profile',
+    method: 'put',
+    data
+  })
+}
+
 // 发送验证码
 export const sendVerifyCode = (email: string) => {
   return request({

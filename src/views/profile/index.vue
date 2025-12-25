@@ -80,7 +80,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { User, UserFilled, Calendar } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getInfo, resetPassword } from '@/api/auth'
+import { getInfo, resetPassword, updateProfile } from '@/api/auth'
 
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
 const activeTab = ref('info')
@@ -91,6 +91,17 @@ const infoForm = reactive({
   email: userInfo.value.username + '@example.com',
   intro: '这个人很懒，什么都没写~'
 })
+
+const handleUpdateInfo = async () => {
+  try {
+    await updateProfile(infoForm)
+    userInfo.value.nickname = infoForm.nickname
+    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    ElMessage.success('基本资料更新成功')
+  } catch (error) {
+    console.error('更新资料失败:', error)
+  }
+}
 
 const pwdForm = reactive({
   oldPassword: '',
@@ -123,36 +134,33 @@ const pwdRules = reactive<FormRules>({
 
 onMounted(async () => {
   try {
-    // const res = await getInfo()
-    // userInfo.value = res.data
-    // Object.assign(infoForm, {
-    //   nickname: userInfo.value.nickname,
-    //   ...
-    // })
-  } catch (error) {}
+    const res: any = await getInfo()
+    userInfo.value = res.data
+    Object.assign(infoForm, {
+      nickname: userInfo.value.nickname,
+      phone: userInfo.value.phone || '13800138000',
+      email: userInfo.value.email || userInfo.value.username + '@example.com',
+      intro: userInfo.value.intro || '这个人很懒，什么都没写~'
+    })
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
 })
-
-const handleUpdateInfo = async () => {
-  try {
-    // 模拟调用接口
-    // await updateInfo(infoForm)
-    userInfo.value.nickname = infoForm.nickname
-    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
-    ElMessage.success('基本资料更新成功')
-  } catch (error) {}
-}
 
 const handleUpdatePwd = async () => {
   if (!pwdFormRef.value) return
   await pwdFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // await resetPassword({
-        //   oldPassword: pwdForm.oldPassword,
-        //   newPassword: pwdForm.newPassword
-        // })
-        ElMessage.success('密码修改成功，请重新登录')
-      } catch (error) {}
+        await resetPassword({
+          oldPassword: pwdForm.oldPassword,
+          newPassword: pwdForm.newPassword
+        })
+        ElMessage.success('密码修改成功')
+        pwdFormRef.value?.resetFields()
+      } catch (error) {
+        console.error('修改密码失败:', error)
+      }
     }
   })
 }

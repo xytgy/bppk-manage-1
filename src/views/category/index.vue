@@ -86,7 +86,6 @@ interface CategoryUI extends Category {
   bookCount: number
 }
 
-// 模拟数据
 const categories = ref<CategoryUI[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -111,21 +110,15 @@ const rules = reactive<FormRules>({
 const getList = async () => {
   loading.value = true
   try {
-    // const res = await getCategoryList()
-    // categories.value = res.data
-    
-    // 模拟数据
-    setTimeout(() => {
-      categories.value = [
-        { id: 1, name: '计算机', code: 'COMP', type: '', bookCount: 450, description: '包含编程、算法、网络、人工智能等图书', createTime: '2023-01-10 10:00:00' },
-        { id: 2, name: '文学', code: 'LIT', type: 'success', bookCount: 320, description: '包含小说、散文、诗歌、中外名著等', createTime: '2023-01-12 14:30:00' },
-        { id: 3, name: '历史', code: 'HIST', type: 'warning', bookCount: 180, description: '包含通史、断代史、人物传记等', createTime: '2023-02-05 09:15:00' },
-        { id: 4, name: '艺术', code: 'ART', type: 'danger', bookCount: 120, description: '包含设计、绘画、音乐、建筑等', createTime: '2023-03-20 16:40:00' },
-        { id: 5, name: '科学', code: 'SCI', type: 'info', bookCount: 95, description: '包含物理、化学、生物、天文等科普读物', createTime: '2023-04-15 11:20:00' }
-      ]
-      loading.value = false
-    }, 500)
+    const res: any = await getCategoryList()
+    categories.value = res.data.map((item: any, index: number) => ({
+      ...item,
+      type: ['', 'success', 'warning', 'danger', 'info'][index % 5],
+      bookCount: item.bookCount || 0
+    }))
   } catch (error) {
+    console.error('获取分类列表失败:', error)
+  } finally {
     loading.value = false
   }
 }
@@ -153,13 +146,12 @@ const handleDelete = (row: CategoryUI) => {
     type: 'warning'
   }).then(async () => {
     try {
-      // await deleteCategory(row.id)
-      const index = categories.value.findIndex(c => c.id === row.id)
-      if (index !== -1) {
-        categories.value.splice(index, 1)
-        ElMessage.success('删除成功')
-      }
-    } catch (error) {}
+      await deleteCategory(row.id!)
+      ElMessage.success('删除成功')
+      getList()
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
   })
 }
 
@@ -182,26 +174,19 @@ const submitForm = async () => {
     if (valid) {
       try {
         if (isEdit.value) {
-          if (!categoryForm.id) return
-          // await updateCategory(categoryForm.id, categoryForm)
-          const index = categories.value.findIndex(c => c.id === categoryForm.id)
-          if (index !== -1) {
-            categories.value[index] = { ...categoryForm }
-            ElMessage.success('修改成功')
+          if (categoryForm.id) {
+            await updateCategory(categoryForm.id, categoryForm)
+            ElMessage.success('更新成功')
           }
         } else {
-          // await addCategory(categoryForm)
-          const newCategory = {
-            ...categoryForm,
-            id: Date.now(),
-            bookCount: 0,
-            createTime: new Date().toLocaleString()
-          }
-          categories.value.push(newCategory)
+          await addCategory(categoryForm)
           ElMessage.success('新增成功')
         }
         dialogVisible.value = false
-      } catch (error) {}
+        getList()
+      } catch (error) {
+        console.error('提交失败:', error)
+      }
     }
   })
 }

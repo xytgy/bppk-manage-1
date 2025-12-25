@@ -79,9 +79,15 @@ const recentBorrows = ref([
 // 获取统计数据
 const fetchStats = async () => {
   try {
-    // const res = await getStatistics()
-    // 更新 statistics.value ...
-  } catch (error) {}
+    const res: any = await getStatistics()
+    const { totalBooks, totalUsers, currentBorrows, overdueBorrows } = res.data
+    statistics.value[0].value = totalBooks
+    statistics.value[1].value = totalUsers
+    statistics.value[2].value = currentBorrows
+    statistics.value[3].value = overdueBorrows
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+  }
 }
 
 // 图表实例和引用
