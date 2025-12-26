@@ -1,4 +1,17 @@
 export const mockData: Record<string, any> = {
+  '/api/auth/login': {
+    code: 200,
+    data: {
+      token: 'mock-token-123456789',
+      userInfo: {
+        id: 1,
+        username: 'admin',
+        nickname: '高级管理员',
+        role: 'admin'
+      }
+    },
+    message: '登录成功'
+  },
   '/api/statistics': {
     code: 200,
     data: {

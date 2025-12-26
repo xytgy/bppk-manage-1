@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import { mockData } from './mockData'
 
 // 是否开启 Mock 模式 (当后端接口未完成时开启)
-const USE_MOCK = true
+const USE_MOCK = false
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
