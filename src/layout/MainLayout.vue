@@ -13,7 +13,7 @@
           <img src="../assets/logo.png" alt="logo" />
           <span>图书管理系统</span>
         </div>
-        <el-menu-item index="/dashboard" v-if="isAdmin">
+        <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>
           <span>数据统计</span>
         </el-menu-item>
@@ -25,7 +25,7 @@
           <el-icon><Notebook /></el-icon>
           <span>图书管理</span>
         </el-menu-item>
-        <el-menu-item index="/hot-books">
+        <el-menu-item index="/hot-books" v-if="isAdmin">
           <el-icon><Star /></el-icon>
           <span>热门图书</span>
         </el-menu-item>

@@ -66,7 +66,14 @@
             >
               归还
             </el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button
+              v-if="isAdmin"
+              size="small"
+              type="danger"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -144,6 +151,9 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const borrowFormRef = ref<FormInstance>()
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const isAdmin = computed(() => userInfo.role === 'admin')
+
 // 下拉选项数据
 const userOptions = ref<any[]>([])
 const bookOptions = ref<any[]>([])
@@ -170,8 +180,14 @@ const getOptions = async () => {
 const getList = async () => {
   loading.value = true
   try {
+    const params: any = { ...queryParams }
+    // 如果不是管理员，强制只能查询自己的用户名
+    if (!isAdmin.value) {
+      params.username = userInfo.username
+    }
+    
     const filteredParams = Object.fromEntries(
-      Object.entries(queryParams).filter(([, value]) => value !== '' && value !== undefined)
+      Object.entries(params).filter(([, value]) => value !== '' && value !== undefined)
     );
     const res: any = await getBorrowList(filteredParams)
     borrowRecords.value = Array.isArray(res.data) ? res.data : []
@@ -281,17 +297,19 @@ const submitForm = async () => {
   await borrowFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        if (borrowForm.userId && borrowForm.bookId) {
+        // 如果是学生，强制使用自己的 ID
+        const userId = isAdmin.value ? borrowForm.userId : userInfo.id
+        if (userId && borrowForm.bookId) {
           await borrowBook({
-            userId: borrowForm.userId,
+            userId: userId,
             bookId: borrowForm.bookId
           })
           ElMessage.success('借阅成功')
           dialogVisible.value = false
-          getList()
+          getList() // 刷新列表，学生此时应该能看到自己刚借的书了
         }
-      } catch (error) {
-        console.error('借阅失败:', error)
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.msg || '借阅失败')
       }
     }
   })

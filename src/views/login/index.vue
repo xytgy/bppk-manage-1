@@ -16,7 +16,7 @@
         <p class="subtitle">BOOK MANAGEMENT SYSTEM</p>
       </div>
 
-      <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large">
+      <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large" @submit.prevent>
         <el-form-item prop="username">
           <el-input v-model="loginForm.username" placeholder="用户名">
             <template #prefix>
@@ -103,7 +103,7 @@ const handleLogin = async () => {
           localStorage.setItem('userInfo', JSON.stringify(userInfo))
           
           ElMessage.success('登录成功，欢迎回来')
-          if (userInfo.role === 'student') {
+          if (userInfo.role === 'student' || userInfo.role === 'user') {
             router.push('/borrow')
           } else {
             router.push('/')

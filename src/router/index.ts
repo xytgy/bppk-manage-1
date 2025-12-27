@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('../views/dashboard/index.vue'),
-        meta: { title: '数据统计', roles: ['admin'] }
+        meta: { title: '数据统计', roles: ['admin', 'student', 'user'] }
       },
       {
         path: 'user',
@@ -42,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'hot-books',
         name: 'HotBooks',
         component: () => import('../views/book/HotBooks.vue'),
-        meta: { title: '热门图书', roles: ['admin', 'student'] }
+        meta: { title: '热门图书', roles: ['admin'] }
       },
       {
         path: 'category',
@@ -54,13 +54,13 @@ const routes: Array<RouteRecordRaw> = [
         path: 'borrow',
         name: 'Borrow',
         component: () => import('../views/borrow/index.vue'),
-        meta: { title: '借阅管理', roles: ['admin', 'student'] }
+        meta: { title: '借阅管理', roles: ['admin', 'student', 'user'] }
       },
       {
         path: 'profile',
         name: 'Profile',
         component: () => import('../views/profile/index.vue'),
-        meta: { title: '个人中心', roles: ['admin', 'student'] }
+        meta: { title: '个人中心', roles: ['admin', 'student', 'user'] }
       }
     ]
   }

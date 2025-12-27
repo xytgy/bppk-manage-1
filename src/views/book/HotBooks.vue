@@ -56,6 +56,7 @@
 import { ref, computed } from 'vue'
 import { Notebook } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { borrowBook } from '@/api/borrow'
 
 interface HotBook {
   id: number
@@ -83,12 +84,22 @@ const topThree = computed(() => hotBooks.value.slice(0, 3))
 const otherHotBooks = computed(() => hotBooks.value.slice(3))
 
 const handleBorrow = (book: HotBook) => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
   ElMessageBox.confirm(`确定要借阅《${book.title}》吗？`, '借阅确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'info'
-  }).then(() => {
-    ElMessage.success(`《${book.title}》借阅成功！请前往“借阅管理”查看。`)
+  }).then(async () => {
+    try {
+      // 调用真实后端接口
+      await borrowBook({
+        userId: userInfo.id,
+        bookId: book.id
+      })
+      ElMessage.success(`《${book.title}》借阅成功！请前往“借阅管理”查看。`)
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.msg || '借阅失败')
+    }
   })
 }
 </script>
