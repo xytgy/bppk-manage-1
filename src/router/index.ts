@@ -63,6 +63,12 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: '个人中心', roles: ['super_admin', 'admin', 'student', 'user'] }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/404.vue'),
+    meta: { title: '404' }
   }
 ]
 
