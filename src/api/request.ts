@@ -8,7 +8,7 @@ const USE_MOCK = false;
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API || 'http://localhost:8080',
+  baseURL: process.env.VUE_APP_BASE_API || 'http://localhost:8888',
   timeout: 5000
 })
 

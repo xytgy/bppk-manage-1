@@ -58,8 +58,8 @@
           <span>测试账号</span>
         </div>
         <div class="test-accounts">
-          <el-tag size="small" type="info">管理员: admin / admin123</el-tag>
-          <el-tag size="small" type="info">学生: student / 123456</el-tag>
+          <el-tag size="small" type="info">管理员: admin/ admin123</el-tag>
+          <el-tag size="small" type="info">学生: student/ 123456</el-tag>
         </div>
       </div>
     </div>
@@ -125,7 +125,9 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-image: url('@/static/bg2.jpg');
+  background-size: cover;
+  background-position: center;
   overflow: hidden;
   position: relative;
 }

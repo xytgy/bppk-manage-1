@@ -190,15 +190,18 @@ const goToLogin = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f0f2f5;
+  background-image: url('@/static/bg2.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 .forgot-box {
   width: 500px;
   padding: 40px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .forgot-header {
