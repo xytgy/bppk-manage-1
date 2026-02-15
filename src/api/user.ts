@@ -56,7 +56,19 @@ export const deleteUser = (id: number) => {
 export const updateUserStatus = (id: number, status: number) => {
   return request({
     url: `/api/users/${id}/status`,
-    method: 'patch',
+    method: 'put',
     data: { status }
+  })
+}
+
+// 上传头像
+export const uploadAvatar = (data: FormData) => {
+  return request({
+    url: '/api/user/upload-avatar',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }

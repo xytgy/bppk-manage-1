@@ -24,43 +24,43 @@ const routes: Array<RouteRecordRaw> = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('../views/dashboard/index.vue'),
-        meta: { title: '数据统计', roles: ['admin', 'student', 'user'] }
+        meta: { title: '数据统计', roles: ['super_admin', 'admin', 'student', 'user'] }
       },
       {
         path: 'user',
         name: 'User',
         component: () => import('../views/user/index.vue'),
-        meta: { title: '用户管理', roles: ['admin'] }
+        meta: { title: '用户管理', roles: ['super_admin', 'admin'] }
       },
       {
         path: 'book',
         name: 'Book',
         component: () => import('../views/book/index.vue'),
-        meta: { title: '图书管理', roles: ['admin'] }
+        meta: { title: '图书管理', roles: ['super_admin', 'admin'] }
       },
       {
         path: 'hot-books',
         name: 'HotBooks',
         component: () => import('../views/book/HotBooks.vue'),
-        meta: { title: '热门图书', roles: ['admin'] }
+        meta: { title: '热门图书', roles: ['super_admin', 'admin', 'student', 'user'] }
       },
       {
         path: 'category',
         name: 'Category',
         component: () => import('../views/category/index.vue'),
-        meta: { title: '分类管理', roles: ['admin'] }
+        meta: { title: '分类管理', roles: ['super_admin', 'admin'] }
       },
       {
         path: 'borrow',
         name: 'Borrow',
         component: () => import('../views/borrow/index.vue'),
-        meta: { title: '借阅管理', roles: ['admin', 'student', 'user'] }
+        meta: { title: '借阅管理', roles: ['super_admin', 'admin', 'student', 'user'] }
       },
       {
         path: 'profile',
         name: 'Profile',
         component: () => import('../views/profile/index.vue'),
-        meta: { title: '个人中心', roles: ['admin', 'student', 'user'] }
+        meta: { title: '个人中心', roles: ['super_admin', 'admin', 'student', 'user'] }
       }
     ]
   }

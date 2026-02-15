@@ -1,24 +1,19 @@
-# bppk-manage-1
+# 图书管理系统 (bppk-manage-1)
 
-## Project setup
-```
-npm install
-```
+本项目是一个基于 Vue 3 + TypeScript + Element Plus 的现代化图书管理系统，旨在提供高效、便捷的图书借阅与管理解决方案。
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
+## 快速安装
+确保 Node.js 环境已安装 (推荐 v16+)。
+```bash
+npm install     # 安装依赖
+npm run serve   # 启动开发服务器
 ```
 
-### Lints and fixes files
-```
-npm run lint
-```
+## 主要功能
+- **图书管理**：书籍的录入、查询与库存管理。
+- **借阅系统**：支持借书、还书及逾期提醒。
+- **用户权限**：区分管理员与普通用户，安全可靠。
+- **数据统计**：可视化展示借阅趋势与热门图书。
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 贡献与许可
+欢迎提交 PR 或 Issue 参与改进。本项目遵循 MIT 许可证。

@@ -58,8 +58,15 @@
           <span>测试账号</span>
         </div>
         <div class="test-accounts">
-          <el-tag size="small" type="info">管理员: admin/ admin123</el-tag>
-          <el-tag size="small" type="info">学生: student/ 123456</el-tag>
+          <el-tooltip
+            effect="dark"
+            content="拥有最高权限：可管理所有管理员及用户"
+            placement="top"
+          >
+            <el-tag size="small" type="warning">超管: super_admin / 123456</el-tag>
+          </el-tooltip>
+          <el-tag size="small" type="info">管理员: admin / admin123</el-tag>
+          <el-tag size="small" type="info">学生: student / 123456</el-tag>
         </div>
       </div>
     </div>

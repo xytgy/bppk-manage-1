@@ -5,7 +5,7 @@ export interface Book {
   title: string
   author: string
   isbn: string
-  categoryId: number
+  categoryId?: number
   categoryName?: string
   publisher: string
   publishDate: string

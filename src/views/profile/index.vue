@@ -4,8 +4,24 @@
       <!-- 个人信息卡片 -->
       <el-col :span="8">
         <el-card shadow="hover" class="profile-card">
-          <div class="user-avatar">
-            <el-avatar :size="100" :icon="UserFilled" />
+          <div class="user-avatar-container">
+            <div class="user-avatar">
+              <el-avatar :size="100" :src="userInfo.avatar" :icon="UserFilled" />
+              <div class="avatar-hover" @click="triggerUpload">
+                <el-icon><Upload /></el-icon>
+                <span>更换头像</span>
+              </div>
+            </div>
+            <!-- 隐藏的上传按钮 -->
+            <el-upload
+              ref="uploadRef"
+              class="avatar-uploader"
+              action="#"
+              :auto-upload="false"
+              :show-file-list="false"
+              :on-change="handleAvatarChange"
+            >
+            </el-upload>
           </div>
           <div class="user-info">
             <h3 class="nickname">{{ userInfo.nickname }}</h3>
@@ -72,18 +88,143 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 头像裁剪对话框 -->
+    <el-dialog
+      v-model="cropperVisible"
+      title="裁剪头像"
+      width="600px"
+      append-to-body
+      destroy-on-close
+    >
+      <div class="cropper-wrapper">
+        <div class="cropper-content">
+          <vue-cropper
+            ref="cropperRef"
+            v-bind="cropperOption"
+          />
+        </div>
+        <div class="preview-container">
+          <div class="preview-title">预览</div>
+          <div class="avatar-preview-round">
+            <img :src="sourceImg" class="preview-img" v-if="sourceImg" />
+          </div>
+          <p class="preview-text">80x80px</p>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="cropperVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleCropConfirm">确认上传</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { User, UserFilled, Calendar } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import { User, UserFilled, Calendar, Upload, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import { getInfo, resetPassword, updateProfile } from '@/api/auth'
+import { uploadAvatar } from '@/api/user'
+import 'vue-cropper/dist/index.css'
+import { VueCropper } from 'vue-cropper'
 
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
 const activeTab = ref('info')
+
+// 头像上传相关
+const cropperVisible = ref(false)
+const cropperRef = ref()
+const sourceImg = ref('')
+const uploadRef = ref()
+
+const triggerUpload = () => {
+  const uploadInput = document.querySelector('.avatar-uploader input') as HTMLInputElement
+  if (uploadInput) {
+    uploadInput.click()
+  }
+}
+
+const cropperOption = reactive({
+  img: '', // 裁剪图片的地址
+  outputSize: 1, // 裁剪生成图片的质量
+  outputType: 'jpeg', // 裁剪生成图片的格式
+  info: true, // 裁剪框的大小信息
+  canScale: true, // 图片是否允许滚轮缩放
+  autoCrop: true, // 是否默认生成截图框
+  autoCropWidth: 200, // 默认生成截图框宽度
+  autoCropHeight: 200, // 默认生成截图框高度
+  fixed: true, // 是否开启截图框宽高固定比例
+  fixedNumber: [1, 1], // 截图框的宽高比例
+  full: false, // 是否输出原图比例的截图
+  fixedBox: true, // 固定截图框大小 不允许改变
+  canMove: true, // 上传图片是否可以移动
+  canMoveBox: false, // 截图框能否拖动
+  original: false, // 上传图片按照原始比例渲染
+  centerBox: true, // 截图框是否被限制在图片里面
+  height: true, // 是否按照设备像素比生成
+  infoTrue: false, // true 为展示真实输出图片宽高 false 展示看到的截图框宽高
+  maxImgSize: 3000, // 限制图片最大宽度和高度
+  enlarge: 1, // 图片根据截图框输出比例倍数
+  mode: 'contain' // 图片默认渲染方式
+})
+
+// 选择文件
+const handleAvatarChange = (uploadFile: UploadFile) => {
+  const file = uploadFile.raw
+  if (!file) return
+  
+  const isTypeOk = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+  const isSizeOk = file.size / 1024 / 1024 < 2
+
+  if (!isTypeOk) {
+    ElMessage.error('上传头像图片只能是 JPG/PNG/WEBP 格式!')
+    return
+  }
+  if (!isSizeOk) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = (e: any) => {
+    sourceImg.value = e.target.result
+    cropperOption.img = e.target.result
+    cropperVisible.value = true
+  }
+  reader.readAsDataURL(file)
+}
+
+// 确认裁剪
+const handleCropConfirm = () => {
+  cropperRef.value.getCropBlob(async (blob: Blob) => {
+    // 转换为 File 对象并统一格式为 jpeg
+    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+    
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    try {
+      // 1. 调用后端上传接口
+      const res: any = await uploadAvatar(formData)
+      const avatarUrl = res.data // 假设后端返回 data 字段为图片 URL
+      
+      // 2. 调用更新个人资料接口存入数据库
+      await updateProfile({ avatar: avatarUrl })
+      
+      // 3. 更新本地显示
+      userInfo.value.avatar = avatarUrl
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      
+      ElMessage.success('头像修改成功')
+      cropperVisible.value = false
+    } catch (error) {
+      console.error('上传头像失败:', error)
+      ElMessage.error('头像上传失败，请稍后重试')
+    }
+  })
+}
 
 const infoForm = reactive({
   nickname: userInfo.value.nickname,
@@ -176,8 +317,98 @@ const handleUpdatePwd = async () => {
   padding: 20px 0;
 }
 
-.user-avatar {
+.user-avatar-container {
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
+}
+
+.user-avatar {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #ebeef5;
+  transition: all 0.3s;
+}
+
+.user-avatar:hover {
+  border-color: #409eff;
+}
+
+.avatar-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+}
+
+.user-avatar:hover .avatar-hover {
+  opacity: 1;
+}
+
+.avatar-uploader {
+  display: none;
+}
+
+.cropper-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 400px;
+}
+
+.cropper-content {
+  width: 400px;
+  height: 400px;
+}
+
+.preview-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.preview-title {
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #606266;
+}
+
+.avatar-preview-round {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #ebeef5;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-text {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #909399;
 }
 
 .nickname {

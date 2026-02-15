@@ -67,7 +67,7 @@
               归还
             </el-button>
             <el-button
-              v-if="isAdmin"
+              v-if="hasAdminAccess"
               size="small"
               type="danger"
               @click="handleDelete(scope.row)"
@@ -88,7 +88,7 @@
     >
       <el-form :model="borrowForm" :rules="rules" ref="borrowFormRef" label-width="100px">
         <el-form-item label="借阅人" prop="userId">
-          <el-select v-model="borrowForm.userId" placeholder="请选择借阅人" style="width: 100%">
+          <el-select v-model="borrowForm.userId" placeholder="请选择借阅人" filterable style="width: 100%">
             <el-option
               v-for="user in userOptions"
               :key="user.id"
@@ -98,7 +98,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="借阅图书" prop="bookId">
-          <el-select v-model="borrowForm.bookId" placeholder="请选择图书" style="width: 100%">
+          <el-select v-model="borrowForm.bookId" placeholder="请选择图书" filterable style="width: 100%">
             <el-option
               v-for="book in bookOptions"
               :key="book.id"
@@ -152,7 +152,7 @@ const dialogVisible = ref(false)
 const borrowFormRef = ref<FormInstance>()
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const isAdmin = computed(() => userInfo.role === 'admin')
+const hasAdminAccess = computed(() => ['super_admin', 'admin'].includes(userInfo.role))
 
 // 下拉选项数据
 const userOptions = ref<any[]>([])
@@ -181,8 +181,8 @@ const getList = async () => {
   loading.value = true
   try {
     const params: any = { ...queryParams }
-    // 如果不是管理员，强制只能查询自己的用户名
-    if (!isAdmin.value) {
+    // 如果不是管理员或超管，强制只能查询自己的用户名
+    if (!hasAdminAccess.value) {
       params.username = userInfo.username
     }
     
@@ -297,8 +297,8 @@ const submitForm = async () => {
   await borrowFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // 如果是学生，强制使用自己的 ID
-        const userId = isAdmin.value ? borrowForm.userId : userInfo.id
+        // 如果是管理员或超管，使用选择的用户 ID，否则使用当前登录用户 ID
+        const userId = hasAdminAccess.value ? borrowForm.userId : userInfo.id
         if (userId && borrowForm.bookId) {
           await borrowBook({
             userId: userId,
@@ -309,7 +309,7 @@ const submitForm = async () => {
           getList() // 刷新列表，学生此时应该能看到自己刚借的书了
         }
       } catch (error: any) {
-        ElMessage.error(error.response?.data?.msg || '借阅失败')
+        console.error('借阅失败:', error)
       }
     }
   })

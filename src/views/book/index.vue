@@ -11,11 +11,12 @@
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="queryParams.category" placeholder="请选择分类" clearable style="width: 180px">
-            <el-option label="计算机" value="计算机" />
-            <el-option label="文学" value="文学" />
-            <el-option label="历史" value="历史" />
-            <el-option label="艺术" value="艺术" />
-            <el-option label="其他" value="其他" />
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.name"
+            />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -75,7 +76,7 @@
     >
       <el-form :model="bookForm" :rules="rules" ref="bookFormRef" label-width="100px">
         <el-form-item label="ISBN" prop="isbn">
-          <el-input v-model="bookForm.isbn" placeholder="请输入ISBN编号" :disabled="isEdit" />
+          <el-input v-model="bookForm.isbn" placeholder="请输入ISBN编号" />
         </el-form-item>
         <el-form-item label="图书名称" prop="title">
           <el-input v-model="bookForm.title" placeholder="请输入图书名称" />
@@ -85,11 +86,12 @@
         </el-form-item>
         <el-form-item label="分类" prop="categoryId">
           <el-select v-model="bookForm.categoryId" placeholder="请选择分类" style="width: 100%">
-            <el-option label="计算机" :value="1" />
-            <el-option label="文学" :value="2" />
-            <el-option label="历史" :value="3" />
-            <el-option label="艺术" :value="4" />
-            <el-option label="其他" :value="5" />
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="出版社" prop="publisher">
@@ -118,7 +120,9 @@ import { Search, Refresh, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getBookList, addBook, updateBook, deleteBook } from '@/api/book'
+import { getCategoryList } from '@/api/category'
 import type { Book } from '@/api/book'
+import type { Category } from '@/api/category'
 
 // 查询参数
 const queryParams = reactive({
@@ -129,6 +133,7 @@ const queryParams = reactive({
 
 // 图书列表数据
 const bookList = ref<Book[]>([])
+const categoryOptions = ref<Category[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -155,8 +160,19 @@ const getList = async () => {
   }
 }
 
+// 获取分类数据
+const fetchCategories = async () => {
+  try {
+    const res: any = await getCategoryList()
+    categoryOptions.value = res.data || []
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+  }
+}
+
 onMounted(() => {
   getList()
+  fetchCategories()
 })
 
 // 表单数据
@@ -165,10 +181,10 @@ const bookForm = reactive<Book>({
   isbn: '',
   title: '',
   author: '',
-  categoryId: 0,
+  categoryId: undefined,
   publisher: '',
   publishDate: '',
-  price: 0,
+  price: undefined as any,
   stock: 1,
   description: ''
 })
@@ -244,10 +260,10 @@ const resetForm = () => {
     isbn: '',
     title: '',
     author: '',
-    categoryId: 0,
+    categoryId: undefined,
     publisher: '',
     publishDate: '',
-    price: 0,
+    price: undefined,
     stock: 1,
     description: ''
   })

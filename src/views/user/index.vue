@@ -8,7 +8,7 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="queryParams.role" placeholder="请选择角色" clearable style="width: 180px">
-            <el-option label="管理员" value="admin" />
+            <el-option label="管理员" value="admin" v-if="currentUserRole === 'super_admin'" />
             <el-option label="普通用户" value="user" />
           </el-select>
         </el-form-item>
@@ -40,8 +40,8 @@
         <el-table-column prop="nickname" label="昵称" align="center" />
         <el-table-column prop="role" label="角色" align="center">
           <template #default="scope">
-            <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'success'">
-              {{ scope.row.role === 'admin' ? '管理员' : '普通用户' }}
+            <el-tag :type="scope.row.role === 'super_admin' ? 'warning' : (scope.row.role === 'admin' ? 'danger' : 'success')">
+              {{ scope.row.role === 'super_admin' ? '超级管理员' : (scope.row.role === 'admin' ? '管理员' : '普通用户') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -72,7 +72,7 @@
       width="500px"
       @closed="resetForm"
     >
-      <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="80px">
+      <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="100px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="userForm.username" placeholder="请输入用户名" :disabled="isEdit" />
         </el-form-item>
@@ -81,12 +81,12 @@
         </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-select v-model="userForm.role" placeholder="请选择角色" style="width: 100%">
-            <el-option label="管理员" value="admin" />
+            <el-option label="管理员" value="admin" v-if="currentUserRole === 'super_admin'" />
             <el-option label="普通用户" value="user" />
           </el-select>
         </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="!isEdit">
-          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" show-password />
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="userForm.password" type="password" :placeholder="isEdit ? '不修改请留空' : '请输入密码'" show-password />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -120,6 +120,12 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const userFormRef = ref<FormInstance>()
 
+// 获取当前登录用户角色
+const currentUserRole = computed(() => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  return userInfo.role
+})
+
 // 获取列表数据
 const getList = async () => {
   loading.value = true
@@ -148,16 +154,31 @@ const userForm = reactive({
 })
 
 // 表单校验规则
-const rules = reactive<FormRules>({
+const rules = computed<FormRules>(() => ({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-})
+  password: [{ required: !isEdit.value, message: '请输入密码', trigger: 'blur' }]
+}))
 
-// 过滤后的用户列表 (如果有后端接口，通常由后端过滤)
+// 过滤后的用户列表
 const filteredUsers = computed(() => {
   return userList.value.filter(user => {
+    // 角色可见性逻辑
+    // 1. 超级管理员只能看到管理员和普通用户
+    if (currentUserRole.value === 'super_admin') {
+      if (user.role === 'super_admin') return false // 不看自己和其他超级管理员
+      if (user.role !== 'admin' && user.role !== 'user') return false
+    }
+    // 2. 管理员只能看到普通用户
+    else if (currentUserRole.value === 'admin') {
+      if (user.role !== 'user') return false
+    }
+    // 3. 其他角色（如普通用户）理论上进不来这个页面，但安全起见不显示任何数据
+    else {
+      return false
+    }
+
     const matchUsername = user.username.toLowerCase().includes(queryParams.username.toLowerCase())
     const matchRole = queryParams.role === '' || user.role === queryParams.role
     return matchUsername && matchRole
@@ -241,7 +262,12 @@ const submitForm = async () => {
       try {
         if (isEdit.value) {
           if (userForm.id) {
-            await updateUser(userForm.id, userForm as any)
+            // 如果密码为空字符串，则不发送密码字段
+            const updateData: any = { ...userForm }
+            if (!updateData.password) {
+              delete updateData.password
+            }
+            await updateUser(userForm.id, updateData as any)
             ElMessage.success('更新成功')
           }
         } else {

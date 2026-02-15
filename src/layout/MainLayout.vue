@@ -17,19 +17,19 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>数据统计</span>
         </el-menu-item>
-        <el-menu-item index="/user" v-if="isAdmin">
+        <el-menu-item index="/user" v-if="hasAdminAccess">
           <el-icon><User /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
-        <el-menu-item index="/book" v-if="isAdmin">
+        <el-menu-item index="/book" v-if="hasAdminAccess">
           <el-icon><Notebook /></el-icon>
           <span>图书管理</span>
         </el-menu-item>
-        <el-menu-item index="/hot-books" v-if="isAdmin">
+        <el-menu-item index="/hot-books">
           <el-icon><Star /></el-icon>
           <span>热门图书</span>
         </el-menu-item>
-        <el-menu-item index="/category" v-if="isAdmin">
+        <el-menu-item index="/category" v-if="hasAdminAccess">
           <el-icon><Collection /></el-icon>
           <span>分类管理</span>
         </el-menu-item>
@@ -74,7 +74,7 @@ import { User, Notebook, Document, Collection, DataAnalysis, Star, ArrowDown } f
 const router = useRouter()
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const isAdmin = computed(() => userInfo.role === 'admin')
+const hasAdminAccess = computed(() => ['super_admin', 'admin'].includes(userInfo.role))
 const nickname = computed(() => userInfo.nickname || '未登录')
 
 const handleLogout = () => {
